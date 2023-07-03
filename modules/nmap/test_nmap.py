@@ -197,8 +197,7 @@ def test_host_no_hostname():
 
 @with_setup(xmlfile_read_setup)
 def test_ports():
-    ports = list(nm["45.33.32.156"]["tcp"].keys())
-    ports.sort()
+    ports = sorted(nm["45.33.32.156"]["tcp"].keys())
     assert_equals([22, 25, 80, 139, 445, 9929, 31337], ports)
     assert nm["45.33.32.156"].has_tcp(22)
     assert nm["45.33.32.156"].has_tcp(23) == False
@@ -249,13 +248,7 @@ def test_csv_output():
     if NMAP_XML_VERSION == "6.40":
         result = "45.33.32.156;scanme.nmap.org;user;tcp;22;ssh;open;;protocol 2.0;syn-ack;;10;"
 
-    elif NMAP_XML_VERSION == "7.01":
-        result = '45.33.32.156;scanme.nmap.org;user;tcp;22;ssh;open;OpenSSH;"Ubuntu Linux; protocol 2.0";syn-ack;6.6.1p1 Ubuntu 2ubuntu2.13;10;cpe:/o:linux:linux_kernel'
-
-    elif NMAP_XML_VERSION == "7.70":
-        result = '45.33.32.156;scanme.nmap.org;user;tcp;22;ssh;open;OpenSSH;"Ubuntu Linux; protocol 2.0";syn-ack;6.6.1p1 Ubuntu 2ubuntu2.13;10;cpe:/o:linux:linux_kernel'
-
-    elif NMAP_XML_VERSION == "7.91":
+    elif NMAP_XML_VERSION in ["7.01", "7.70", "7.91"]:
         result = '45.33.32.156;scanme.nmap.org;user;tcp;22;ssh;open;OpenSSH;"Ubuntu Linux; protocol 2.0";syn-ack;6.6.1p1 Ubuntu 2ubuntu2.13;10;cpe:/o:linux:linux_kernel'
 
     if result is not None:

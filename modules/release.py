@@ -75,8 +75,7 @@ page = banner.menu[page_number]
 selected_banner = color.RED + banner.banner6
 
 start()
-run_phonesploit_pro = True
-if run_phonesploit_pro:
+if run_phonesploit_pro := True:
     clear_screen()
     while run_phonesploit_pro:
         try:
