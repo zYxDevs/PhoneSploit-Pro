@@ -223,10 +223,6 @@ class PortScanner(object):
                 str,
             ), f"Wrong type for [hosts], should be a string [was {type(hosts)}]"
 
-            assert type(ports) in (
-                str,
-                type(None),
-            ), f"Wrong type for [ports], should be a string [was {type(ports)}]"
             assert type(arguments) in (
                 str,
             ), f"Wrong type for [arguments], should be a string [was {type(arguments)}]"
@@ -234,14 +230,14 @@ class PortScanner(object):
             assert (
                 type(hosts) is str
             ), f"Wrong type for [hosts], should be a string [was {type(hosts)}]"
-            assert type(ports) in (
-                str,
-                type(None),
-            ), f"Wrong type for [ports], should be a string [was {type(ports)}]"
             assert (
                 type(arguments) is str
             ), f"Wrong type for [arguments], should be a string [was {type(arguments)}]"
 
+        assert type(ports) in (
+            str,
+            type(None),
+        ), f"Wrong type for [ports], should be a string [was {type(ports)}]"
         for redirecting_output in ["-oX", "-oA"]:
             assert (
                 redirecting_output not in arguments
@@ -363,8 +359,6 @@ class PortScanner(object):
         if nmap_xml_output is not None:
             self._nmap_last_output = nmap_xml_output
 
-        scan_result = {}
-
         try:
             dom = ET.fromstring(self._nmap_last_output)
         except Exception:
@@ -373,19 +367,19 @@ class PortScanner(object):
             else:
                 raise PortScannerError(self._nmap_last_output)
 
-        # nmap command line
-        scan_result["nmap"] = {
-            "command_line": dom.get("args"),
-            "scaninfo": {},
-            "scanstats": {
-                "timestr": dom.find("runstats/finished").get("timestr"),
-                "elapsed": dom.find("runstats/finished").get("elapsed"),
-                "uphosts": dom.find("runstats/hosts").get("up"),
-                "downhosts": dom.find("runstats/hosts").get("down"),
-                "totalhosts": dom.find("runstats/hosts").get("total"),
-            },
+        scan_result = {
+            "nmap": {
+                "command_line": dom.get("args"),
+                "scaninfo": {},
+                "scanstats": {
+                    "timestr": dom.find("runstats/finished").get("timestr"),
+                    "elapsed": dom.find("runstats/finished").get("elapsed"),
+                    "uphosts": dom.find("runstats/hosts").get("up"),
+                    "downhosts": dom.find("runstats/hosts").get("down"),
+                    "totalhosts": dom.find("runstats/hosts").get("total"),
+                },
+            }
         }
-
         # if there was an error
         if len(nmap_err_keep_trace) > 0:
             scan_result["nmap"]["scaninfo"]["error"] = nmap_err_keep_trace
@@ -421,10 +415,10 @@ class PortScanner(object):
 
             hostnames = []
             if len(dhost.findall("hostnames/hostname")) > 0:
-                for dhostname in dhost.findall("hostnames/hostname"):
-                    hostnames.append(
-                        {"name": dhostname.get("name"), "type": dhostname.get("type")}
-                    )
+                hostnames.extend(
+                    {"name": dhostname.get("name"), "type": dhostname.get("type")}
+                    for dhostname in dhost.findall("hostnames/hostname")
+                )
             else:
                 hostnames.append({"name": "", "type": ""})
 
@@ -550,10 +544,7 @@ class PortScanner(object):
                         osgen = dosclass.get("osgen")
                         accuracy = dosclass.get("accuracy")
 
-                        cpe = []
-                        for dcpe in dosclass.findall("cpe"):
-                            cpe.append(dcpe.text)
-
+                        cpe = [dcpe.text for dcpe in dosclass.findall("cpe")]
                         osclass.append(
                             {
                                 "type": ostype,
@@ -605,9 +596,7 @@ class PortScanner(object):
         """
         if "scan" not in list(self._scan_result.keys()):
             return []
-        listh = list(self._scan_result["scan"].keys())
-        listh.sort()
-        return listh
+        return sorted(self._scan_result["scan"].keys())
 
     def command_line(self):
         """
@@ -659,10 +648,7 @@ class PortScanner(object):
         ), f"Wrong type for [host], should be a string [was {type(host)}]"
         assert "scan" in self._scan_result, "Do a scan before trying to get result !"
 
-        if host in list(self._scan_result["scan"].keys()):
-            return True
-
-        return False
+        return host in list(self._scan_result["scan"].keys())
 
     def csv(self):
         """
@@ -676,11 +662,7 @@ class PortScanner(object):
         """
         assert "scan" in self._scan_result, "Do a scan before trying to get result !"
 
-        if sys.version_info < (3, 0):
-            fd = io.BytesIO()
-        else:
-            fd = io.StringIO()
-
+        fd = io.BytesIO() if sys.version_info < (3, 0) else io.StringIO()
         csv_ouput = csv.writer(fd, delimiter=";")
         csv_header = [
             "host",
@@ -704,8 +686,7 @@ class PortScanner(object):
             for proto in self[host].all_protocols():
                 if proto not in ["tcp", "udp"]:
                     continue
-                lport = list(self[host][proto].keys())
-                lport.sort()
+                lport = sorted(self[host][proto].keys())
                 for port in lport:
                     hostname = ""
                     for h in self[host]["hostnames"]:
@@ -817,10 +798,6 @@ class PortScannerAsync(object):
             assert type(hosts) in (
                 str,
             ), f"Wrong type for [hosts], should be a string [was {type(hosts)}]"
-            assert type(ports) in (
-                str,
-                type(None),
-            ), f"Wrong type for [ports], should be a string [was {type(ports)}]"
             assert type(arguments) in (
                 str,
             ), f"Wrong type for [arguments], should be a string [was {type(arguments)}]"
@@ -828,14 +805,14 @@ class PortScannerAsync(object):
             assert (
                 type(hosts) is str
             ), f"Wrong type for [hosts], should be a string [was {type(hosts)}]"
-            assert type(ports) in (
-                str,
-                type(None),
-            ), f"Wrong type for [ports], should be a string [was {type(ports)}]"
             assert (
                 type(arguments) is str
             ), f"Wrong type for [arguments], should be a string [was {type(arguments)}]"
 
+        assert type(ports) in (
+            str,
+            type(None),
+        ), f"Wrong type for [ports], should be a string [was {type(ports)}]"
         assert (
             callable(callback) or callback is None
         ), f"The [callback] {str(callback)} should be callable or None."
@@ -982,7 +959,6 @@ class PortScannerHostDict(dict):
         :returns: try to return the user record or the first hostname of the list hostnames
 
         """
-        hostname = ""
         for h in self["hostnames"]:
             if h["type"] == "user":
                 return h["name"]
@@ -992,7 +968,7 @@ class PortScannerHostDict(dict):
             else:
                 return ""
 
-        return hostname
+        return ""
 
     def state(self):
         """
@@ -1017,8 +993,7 @@ class PortScannerHostDict(dict):
         def _proto_filter(x):
             return x in ["ip", "tcp", "udp", "sctp"]
 
-        lp = list(filter(_proto_filter, list(self.keys())))
-        lp.sort()
+        lp = sorted(filter(_proto_filter, list(self.keys())))
         return lp
 
     def all_tcp(self):
@@ -1026,11 +1001,7 @@ class PortScannerHostDict(dict):
         :returns: list of tcp ports
 
         """
-        if "tcp" in list(self.keys()):
-            ltcp = list(self["tcp"].keys())
-            ltcp.sort()
-            return ltcp
-        return []
+        return sorted(self["tcp"].keys()) if "tcp" in list(self.keys()) else []
 
     def has_tcp(self, port):
         """
@@ -1042,9 +1013,7 @@ class PortScannerHostDict(dict):
             type(port) is int
         ), f"Wrong type for [port], should be an int [was {type(port)}]"
 
-        if "tcp" in list(self.keys()) and port in list(self["tcp"].keys()):
-            return True
-        return False
+        return "tcp" in list(self.keys()) and port in list(self["tcp"].keys())
 
     def tcp(self, port):
         """
@@ -1062,11 +1031,7 @@ class PortScannerHostDict(dict):
         :returns: list of udp ports
 
         """
-        if "udp" in list(self.keys()):
-            ludp = list(self["udp"].keys())
-            ludp.sort()
-            return ludp
-        return []
+        return sorted(self["udp"].keys()) if "udp" in list(self.keys()) else []
 
     def has_udp(self, port):
         """
@@ -1078,9 +1043,7 @@ class PortScannerHostDict(dict):
             type(port) is int
         ), f"Wrong type for [port], should be an int [was {type(port)}]"
 
-        if "udp" in list(self.keys()) and "port" in list(self["udp"].keys()):
-            return True
-        return False
+        return "udp" in list(self.keys()) and "port" in list(self["udp"].keys())
 
     def udp(self, port):
         """
@@ -1099,11 +1062,7 @@ class PortScannerHostDict(dict):
         :returns: list of ip ports
 
         """
-        if "ip" in list(self.keys()):
-            lip = list(self["ip"].keys())
-            lip.sort()
-            return lip
-        return []
+        return sorted(self["ip"].keys()) if "ip" in list(self.keys()) else []
 
     def has_ip(self, port):
         """
@@ -1115,9 +1074,7 @@ class PortScannerHostDict(dict):
             type(port) is int
         ), f"Wrong type for [port], should be an int [was {type(port)}]"
 
-        if "ip" in list(self.keys()) and port in list(self["ip"].keys()):
-            return True
-        return False
+        return "ip" in list(self.keys()) and port in list(self["ip"].keys())
 
     def ip(self, port):
         """
@@ -1136,11 +1093,7 @@ class PortScannerHostDict(dict):
         :returns: list of sctp ports
 
         """
-        if "sctp" in list(self.keys()):
-            lsctp = list(self["sctp"].keys())
-            lsctp.sort()
-            return lsctp
-        return []
+        return sorted(self["sctp"].keys()) if "sctp" in list(self.keys()) else []
 
     def has_sctp(self, port):
         """
@@ -1151,9 +1104,7 @@ class PortScannerHostDict(dict):
             type(port) is int
         ), f"Wrong type for [port], should be an int [was {type(port)}]"
 
-        if "sctp" in list(self.keys()) and port in list(self["sctp"].keys()):
-            return True
-        return False
+        return "sctp" in list(self.keys()) and port in list(self["sctp"].keys())
 
     def sctp(self, port):
         """
@@ -1206,8 +1157,7 @@ def __get_last_online_version():
 
     conn = http.client.HTTPConnection("xael.org")
     conn.request("GET", "/pages/python-nmap/python-nmap_CURRENT_VERSION.txt")
-    online_version = bytes.decode(conn.getresponse().read()).strip()
-    return online_version
+    return bytes.decode(conn.getresponse().read()).strip()
 
 
 ############################################################################
@@ -1226,13 +1176,12 @@ def convert_nmap_output_to_encoding(value, code="ascii"):
     for k in value:
         if type(value[k]) in [dict, PortScannerHostDict]:
             new_value[k] = convert_nmap_output_to_encoding(value[k], code)
+        elif type(value[k]) is list:
+            new_value[k] = [
+                convert_nmap_output_to_encoding(x, code) for x in value[k]
+            ]
         else:
-            if type(value[k]) is list:
-                new_value[k] = [
-                    convert_nmap_output_to_encoding(x, code) for x in value[k]
-                ]
-            else:
-                new_value[k] = value[k].encode(code)
+            new_value[k] = value[k].encode(code)
     return new_value
 
 
