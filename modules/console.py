@@ -126,7 +126,13 @@ def adb(args: list[str], capture: bool = True) -> subprocess.CompletedProcess:
         )
     cmd = [_adb_executable] + args
     if capture:
-        return subprocess.run(cmd, capture_output=True, text=True)
+        return subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
     return subprocess.run(cmd)
 
 
