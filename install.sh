@@ -277,12 +277,13 @@ install_pip_reqs() {
     warn "requirements.txt not found; skipping pip."
     return 0
   fi
-  # Try user install first; many distros use PEP 668 and need --break-system-packages for pip outside a venv.
-  if python3 -m pip install --user -r "$SCRIPT_DIR/requirements.txt"; then
-    return 0
+  local venv="$SCRIPT_DIR/.venv"
+  if [[ ! -d "$venv" ]]; then
+    warn "Creating virtual environment at .venv…"
+    python3 -m venv "$venv"
   fi
-  warn "Retrying pip with --break-system-packages (PEP 668 / externally-managed Python)…"
-  python3 -m pip install --user --break-system-packages -r "$SCRIPT_DIR/requirements.txt"
+  warn "Installing Python dependencies into .venv…"
+  "$venv/bin/pip" install -r "$SCRIPT_DIR/requirements.txt"
 }
 
 # --- Parse desired components (bash 3 compatible; no associative arrays) ---
@@ -361,5 +362,7 @@ fi
 
 say ""
 say "Done. If commands are still not found, open a new terminal or log out and back in (PATH updates)."
-say "Then run: python3 phonesploitpro.py"
+say "Activate the virtual environment and run:"
+say "  source .venv/bin/activate"
+say "  python3 phonesploitpro.py"
 say ""

@@ -214,13 +214,19 @@ if ($want.metasploit) {
 
 if ($want.pip -and -not $SkipPip) {
     if (Test-Path (Join-Path $ScriptDir "requirements.txt")) {
-        Write-Info "pip install -r requirements.txt …"
-        $req = Join-Path $ScriptDir "requirements.txt"
-        if ($usePyLauncher) {
-            & py -3 -m pip install -r $req
-        } else {
-            & $pythonExe -m pip install -r $req
+        $venv = Join-Path $ScriptDir ".venv"
+        if (-not (Test-Path $venv)) {
+            Write-Info "Creating virtual environment at .venv…"
+            if ($usePyLauncher) {
+                & py -3 -m venv $venv
+            } else {
+                & $pythonExe -m venv $venv
+            }
         }
+        Write-Info "Installing Python dependencies into .venv…"
+        $pip = Join-Path $venv "Scripts\pip.exe"
+        $req = Join-Path $ScriptDir "requirements.txt"
+        & $pip install -r $req
     } else {
         Write-Warn "requirements.txt not found; skipping pip."
     }
@@ -228,5 +234,7 @@ if ($want.pip -and -not $SkipPip) {
 
 Write-Host ""
 Write-Info "Done. If tools are still not found, close this window and open a new terminal (PATH refresh)."
-Write-Info "Then run: python phonesploitpro.py"
+Write-Info "Activate the virtual environment and run:"
+Write-Info "  .\.venv\Scripts\activate"
+Write-Info "  python phonesploitpro.py"
 Write-Host ""

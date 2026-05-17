@@ -175,34 +175,33 @@ __PhoneSploit Pro__ does not need installation and runs directly with `python3`.
 
 Make sure all [required](#requirements) software is installed.
 
-Open a terminal and run the following commands:
-
 ```
 git clone https://github.com/AzeemIdrisi/PhoneSploit-Pro.git
-```
-```
 cd PhoneSploit-Pro/
 ```
 ```
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 ```
 python3 phonesploitpro.py
 ```
 
+> [!TIP]
+> You only need to activate the virtual environment (`source .venv/bin/activate`) each time you open a new terminal before running the program.
+
 ### Windows
 
 Make sure all [required](#requirements) software is installed.
 
-Open a terminal and run the following commands:
-
 ```
 git clone https://github.com/AzeemIdrisi/PhoneSploit-Pro.git
-```
-```
 cd PhoneSploit-Pro/
 ```
 ```
+python -m venv .venv
+.\.venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
