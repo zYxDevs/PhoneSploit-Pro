@@ -5,6 +5,7 @@
 param(
     [string] $Components = "",
     [switch] $NonInteractive,
+    [switch] $Interactive,
     [switch] $SkipPip,
     [switch] $SkipChocolateyInstall
 )
@@ -46,22 +47,21 @@ function Install-Chocolatey {
 function Ensure-Chocolatey {
     $choco = Get-ChocoExe
     if ($choco) { return $choco }
-    if ($NonInteractive -and -not $SkipChocolateyInstall) {
-        Install-Chocolatey
-        $choco = Get-ChocoExe
-        if ($choco) { return $choco }
-        throw "Chocolatey install finished but choco.exe was not found. Restart PowerShell and try again."
+    if ($SkipChocolateyInstall) {
+        throw "Chocolatey is not installed. Install from https://chocolatey.org/install or re-run without -SkipChocolateyInstall."
     }
-    if ($NonInteractive) {
-        throw "Chocolatey is required. Install from https://chocolatey.org/install"
+    if ($Interactive) {
+        $ans = Read-Host "Chocolatey is not installed. Install it now? [y/N]"
+        if ($ans -notmatch '^[yY]') {
+            throw "Chocolatey is required for automatic installs on Windows. Install manually and re-run."
+        }
     }
-    $ans = Read-Host "Chocolatey is not installed. Install it now? [y/N]"
-    if ($ans -notmatch '^[yY]') {
-        throw "Chocolatey is required for automatic installs on Windows. Install manually and re-run."
+    elseif (-not (Test-IsAdmin)) {
+        throw "Chocolatey is not installed. Run PowerShell as Administrator to install Chocolatey automatically, or install from https://chocolatey.org/install"
     }
     Install-Chocolatey
     $choco = Get-ChocoExe
-    if (-not $choco) { throw "choco.exe not found after install. Restart PowerShell and re-run." }
+    if (-not $choco) { throw "Chocolatey install finished but choco.exe was not found. Restart PowerShell and try again." }
     return $choco
 }
 
@@ -109,6 +109,10 @@ $want = @{
     pip         = $false
 }
 
+# Default: installs all components (adb, metasploit, scrcpy, nmap, pip) without prompts.
+# Use -Components to limit what is installed, or -Interactive for per-component and Chocolatey prompts.
+# -NonInteractive is kept for backward compatibility (default behavior is already non-interactive).
+
 if ($Components -ne "") {
     foreach ($p in $Components.Split(",")) {
         $k = $p.Trim().ToLowerInvariant()
@@ -122,10 +126,7 @@ if ($Components -ne "") {
             default { Write-Warn "Unknown component ignored: $k" }
         }
     }
-} else {
-    if ($NonInteractive) {
-        throw "With -NonInteractive you must pass -Components, e.g. -Components adb,nmap,scrcpy,pip"
-    }
+} elseif ($Interactive) {
     Write-Host ""
     Write-Host "PhoneSploit Pro — Windows dependency installer" -ForegroundColor Green
     Write-Host "Detected: Windows $([Environment]::OSVersion.Version)" -ForegroundColor Gray
@@ -139,6 +140,13 @@ if ($Components -ne "") {
     $want.scrcpy = Ask "Install scrcpy (Chocolatey)?"
     $want.nmap = Ask "Install Nmap (Chocolatey)?"
     $want.pip = Ask "Run pip install -r requirements.txt?"
+}
+else {
+    $want.adb = $true
+    $want.metasploit = $true
+    $want.scrcpy = $true
+    $want.nmap = $true
+    $want.pip = $true
 }
 
 $any = $want.Values -contains $true

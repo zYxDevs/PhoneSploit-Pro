@@ -7,7 +7,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-YES=0
+# Default non-interactive: install all components; subsidiary prompts (e.g. Homebrew) assume yes.
+YES=1
 COMPONENTS_RAW=""
 SKIP_PIP=0
 
@@ -15,21 +16,26 @@ usage() {
   cat <<'EOF'
 Usage: ./install.sh [options]
 
-  --yes, -y              Non-interactive: assume yes for prompts (except sudo/password).
+  --yes, -y              Non-interactive: assume yes for prompts (except sudo/password). Default on.
+  --interactive          Ask yes/no per component instead of installing everything.
   --components LIST      Comma-separated: adb,metasploit,scrcpy,nmap,pip
-                         If omitted (interactive), you will be asked what to install.
+                         If omitted, all of the above are installed.
   --skip-pip             Do not run pip install -r requirements.txt
   -h, --help             Show this help
 
 Examples:
   ./install.sh
-  ./install.sh --yes --components adb,nmap,scrcpy,pip
+  ./install.sh --components adb,nmap,pip
+  ./install.sh --interactive
 EOF
 }
+
+INTERACTIVE=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --yes|-y) YES=1 ;;
+    --interactive) INTERACTIVE=1; YES=0 ;;
     --components) COMPONENTS_RAW="${2:-}"; shift ;;
     --skip-pip) SKIP_PIP=1 ;;
     -h|--help) usage; exit 0 ;;
@@ -113,11 +119,10 @@ ensure_brew() {
     return 0
   fi
   warn "Homebrew is not installed (needed on macOS for several tools)."
-  if [[ "$YES" -eq 1 ]]; then
-    die "Install Homebrew from https://brew.sh and re-run."
-  fi
-  if ! prompt_yes "Install Homebrew now (official install script)?"; then
-    die "Homebrew is required on macOS for this installer. Install manually and re-run."
+  if [[ "$YES" -eq 0 ]]; then
+    if ! prompt_yes "Install Homebrew now (official install script)?"; then
+      die "Homebrew is required on macOS for this installer. Install manually and re-run."
+    fi
   fi
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
   # shellcheck disable=SC1091
@@ -307,16 +312,19 @@ if [[ -n "$COMPONENTS_RAW" ]]; then
     set_component "$p"
   done
   IFS="$_old_ifs"
-else
-  if [[ "$YES" -eq 1 ]]; then
-    die "With --yes you must pass --components (e.g. adb,nmap,pip)."
-  fi
+elif [[ "$INTERACTIVE" -eq 1 ]]; then
   say "Choose what to install (you can say n to skip each):"
   prompt_yes "Install ADB (Android platform tools)?" && want_adb=1
   prompt_yes "Install Metasploit-Framework (large download)?" && want_metasploit=1
   prompt_yes "Install scrcpy?" && want_scrcpy=1
   prompt_yes "Install Nmap?" && want_nmap=1
   prompt_yes "Run pip install -r requirements.txt?" && want_pip=1
+else
+  want_adb=1
+  want_metasploit=1
+  want_scrcpy=1
+  want_nmap=1
+  want_pip=1
 fi
 
 if [[ "$OS_KIND" = "unknown" ]]; then
