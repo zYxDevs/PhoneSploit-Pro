@@ -13,7 +13,6 @@ def _timestamp() -> str:
 
 def _write_dump(dest: Path, result: subprocess.CompletedProcess[str]) -> None:
     """Persist adb output: stdout only on success; on failure, record stderr in a sibling file."""
-    stdout = result.stdout or ""
     stderr = result.stderr or ""
     if result.returncode != 0:
         err_msg = stderr.strip() or "(no stderr from adb)"
