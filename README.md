@@ -19,10 +19,11 @@ An all-in-one hacking tool written in `Python` to remotely exploit Android devic
 - [Screenshots](#screenshots)
 - [Features](#features)
 - [Requirements](#requirements)
+- [Installing dependencies](#installing-dependencies)
 - [Getting started](#getting-started)
 - [Device setup tutorial](#device-setup-tutorial)
 - [Compatibility](#compatibility)
-- [Installing external tools](#installing-external-tools)
+- [Installing tools manually](#installing-tools-manually)
 - [Disclaimer](#disclaimer)
 - [Developer](#developer)
 - [Support](#support)
@@ -131,6 +132,38 @@ The goal of this project is to make penetration testing and vulnerability assess
 
 ---
 
+## Installing dependencies
+
+Use the bundled installer to set up all dependencies automatically. It detects your OS and uses the appropriate package manager.
+
+### Linux / macOS / Termux
+
+```
+chmod +x install.sh
+./install.sh
+```
+
+To install specific tools only: `./install.sh --components adb,nmap,pip`  
+For per-component prompts: `./install.sh --interactive`
+
+### Windows
+
+Run PowerShell **as Administrator**, then:
+
+```
+Set-ExecutionPolicy -Scope Process Bypass
+.\install.ps1
+```
+
+To install specific tools only: `.\install.ps1 -Components adb,nmap,pip`  
+For per-component prompts: `.\install.ps1 -Interactive`
+
+### From PhoneSploit Pro
+
+If a dependency is missing, the program shows a **Missing Dependencies** warning. Press **`I`** to run the installer, **`Y`** to continue anyway, or **`N`** to exit.
+
+---
+
 ## Getting started
 
 __PhoneSploit Pro__ does not need installation and runs directly with `python3`.
@@ -142,34 +175,33 @@ __PhoneSploit Pro__ does not need installation and runs directly with `python3`.
 
 Make sure all [required](#requirements) software is installed.
 
-Open a terminal and run the following commands:
-
 ```
 git clone https://github.com/AzeemIdrisi/PhoneSploit-Pro.git
-```
-```
 cd PhoneSploit-Pro/
 ```
 ```
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 ```
 python3 phonesploitpro.py
 ```
 
+> [!TIP]
+> You only need to activate the virtual environment (`source .venv/bin/activate`) each time you open a new terminal before running the program.
+
 ### Windows
 
 Make sure all [required](#requirements) software is installed.
 
-Open a terminal and run the following commands:
-
 ```
 git clone https://github.com/AzeemIdrisi/PhoneSploit-Pro.git
-```
-```
 cd PhoneSploit-Pro/
 ```
 ```
+python -m venv .venv
+.\.venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
@@ -247,9 +279,9 @@ Some features might not work properly on Windows.
 
 ---
 
-## Installing external tools
+## Installing tools manually
 
-If any dependency from [Requirements](#requirements) is missing, use the sections below to install it on your platform.
+If you prefer to install tools yourself, or the automatic installer is not available for your platform, use the sections below.
 
 ### ADB
 
@@ -267,7 +299,7 @@ sudo apt install adb
 
 * __Fedora__
 ```
-sudo dnf install adb
+sudo dnf install android-tools
 ```
 
 * __Arch Linux / Manjaro__
@@ -309,7 +341,13 @@ curl https://raw.githubusercontent.com/rapid7/metasploit-omnibus/master/config/t
   chmod 755 msfinstall && \
   ./msfinstall
  ```
- 
+
+* __macOS (Homebrew)__ — Metasploit is distributed as a [Homebrew Cask](https://formulae.brew.sh/cask/metasploit) (not `brew install` without `--cask`):
+
+```
+brew install --cask metasploit
+```
+
 Or follow: [Installing Metasploit on Linux / macOS](https://docs.metasploit.com/docs/using-metasploit/getting-started/nightly-installers.html#installing-metasploit-on-linux--macos)
 
 Or visit: [Metasploit download](https://www.metasploit.com/download)
