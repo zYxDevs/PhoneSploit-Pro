@@ -13,23 +13,22 @@ def _timestamp() -> str:
 
 def _write_dump(dest: Path, result: subprocess.CompletedProcess[str]) -> None:
     """Persist adb output: stdout only on success; on failure, record stderr in a sibling file."""
-    stderr = result.stderr or ""
     if result.returncode != 0:
-        err_msg = stderr.strip() or "(no stderr from adb)"
+        err_msg = result.stderr.strip() or "(no stderr from adb)"
         print_error(f"Dump failed: {err_msg}")
         err_dest = dest.with_suffix(".error.txt")
-        detail = stderr.strip() or f"adb exited with code {result.returncode} (no stderr output)."
+        detail = result.stderr.strip() or f"adb exited with code {result.returncode} (no stderr output)."
         try:
             err_dest.write_text(detail, encoding="utf-8")
         except OSError as e:
             print_error(f"Could not save error details to {err_dest}: {e}")
         return
     try:
-        dest.write_text(stdout, encoding="utf-8")
+        dest.write_text(result.stdout, encoding="utf-8")
     except OSError as e:
         print_error(f"Could not write dump file {dest}: {e}")
         return
-    lines = [l for l in stdout.splitlines() if l.strip()]
+    lines = [l for l in result.stdout.splitlines() if l.strip()]
     print_success(f"Saved {len(lines)} records to: {dest}")
 
 
