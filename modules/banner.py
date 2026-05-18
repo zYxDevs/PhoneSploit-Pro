@@ -32,7 +32,7 @@ menu1 = """
     [white]2. [green]List Connected Devices       [white]7. [green]Screen Record                        [white]12. [green]Uninstall an App
     [white]3. [green]Disconnect All Devices       [white]8. [green]Download File/Folder from Device     [white]13. [green]List Installed Apps
     [white]4. [green]Scan Network for Devices     [white]9. [green]Send File/Folder to Device           [white]14. [green]Access Device Shell
-    [white]5. [green]Mirror & Control Device     [white]10. [green]Run an App                           [white]15. [green]Hack Device [red](Using Metasploit)[/red]
+    [white]5. [green]Mirror & Control Device     [white]10. [green]Run an App                           [white]15. [green]Launch Metasploit Attack
 
   [yellow]N: Next Page                                      (Page : 1 / 5)[/yellow]"""
 
