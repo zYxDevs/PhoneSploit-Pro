@@ -64,7 +64,7 @@ menu4 = """
   [yellow]P: Previous Page         N: Next Page            (Page : 4 / 5)[/yellow]"""
 
 menu5 = """
-    [white]61. [green]Root Heuristics                [white]62. [green]Update PhoneSploit-Pro
+    [white]61. [green]Root Heuristics                [white]62. [green]Update PhoneSploit-Pro          [white]63. [green]Camera Live
 
   [yellow]P: Previous Page                                  (Page : 5 / 5)[/yellow]"""
 

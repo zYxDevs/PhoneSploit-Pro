@@ -5,7 +5,9 @@ PATH via shutil.which, plus Windows local copies next to the project (README).
 
 from __future__ import annotations
 
+import os
 import shutil
+import subprocess
 from pathlib import Path
 
 from modules.config import AppConfig
@@ -104,3 +106,20 @@ def require_metasploit(config: AppConfig) -> bool:
 def scrcpy_argv(config: AppConfig, args: list[str]) -> list[str]:
     """Build argv for subprocess; caller must ensure require_scrcpy(config) first."""
     return [config.scrcpy_path or "scrcpy"] + args
+
+
+def scrcpy_env(config: AppConfig) -> dict[str, str]:
+    env = os.environ.copy()
+    if config.adb_path:
+        adb_path = Path(config.adb_path).resolve()
+        env["ADB"] = str(adb_path)
+        env["PATH"] = str(adb_path.parent) + os.pathsep + env.get("PATH", "")
+    return env
+
+
+def run_scrcpy(config: AppConfig, args: list[str]) -> subprocess.CompletedProcess:
+    return subprocess.run(scrcpy_argv(config, args), env=scrcpy_env(config))
+
+
+def run_scrcpy_command(config: AppConfig, cmd: list[str]) -> subprocess.CompletedProcess:
+    return subprocess.run(cmd, env=scrcpy_env(config))
