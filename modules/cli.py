@@ -493,7 +493,13 @@ def main(config: AppConfig) -> None:
                 return
             root_check.root_heuristics(config)
         case "62":
-            update_me(config)
+            if not require_adb(config):
+                return
+            if not require_scrcpy(config):
+                return
+            media.camera_live(config)
+        case "63": 
+             update_me(config)
         case _:
             console.print("\n[red]Invalid selection![/red]\n")
 

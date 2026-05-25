@@ -77,6 +77,7 @@ The goal of this project is to make penetration testing and vulnerability assess
 | **Copy WhatsApp data** | Copy all WhatsApp data to the computer. |
 | **Copy screenshots** | Copy all screenshots to the computer. |
 | **Copy camera photos** | Copy all camera photos to the computer. |
+| **Camera live** | Stream live video from the front or back camera on the target device. |
 | **Dump SMS** | Export all SMS from the device to the computer. |
 | **Dump contacts** | Export all contacts from the device to the computer. |
 | **Dump call logs** | Export all call logs from the device to the computer. |
