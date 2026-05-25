@@ -71,6 +71,73 @@ function Refresh-PathFromMachine {
     $env:Path = "$machine;$user"
 }
 
+function Test-CommandAvailable([string] $Name) {
+    return $null -ne (Get-Command $Name -ErrorAction SilentlyContinue)
+}
+
+function Test-AdbPresent {
+    if (Test-CommandAvailable "adb") { return $true }
+    $local = Join-Path $ScriptDir "adb.exe"
+    return Test-Path $local
+}
+
+function Test-MetasploitPresent {
+    return (Test-CommandAvailable "msfconsole") -and (Test-CommandAvailable "msfvenom")
+}
+
+function Test-ScrcpyPresent {
+    if (Test-CommandAvailable "scrcpy") { return $true }
+    if (Test-CommandAvailable "scrcpy.exe") { return $true }
+    $local = Join-Path $ScriptDir "scrcpy.exe"
+    return Test-Path $local
+}
+
+function Test-NmapPresent {
+    return Test-CommandAvailable "nmap"
+}
+
+function Test-PipReqsPresent {
+    $req = Join-Path $ScriptDir "requirements.txt"
+    $venv = Join-Path $ScriptDir ".venv"
+    $pip = Join-Path $venv "Scripts\pip.exe"
+    if (-not (Test-Path $req)) { return $true }
+    if (-not (Test-Path $pip)) { return $false }
+
+    $missing = $false
+    foreach ($line in Get-Content $req) {
+        $line = ($line -split '#', 2)[0].Trim()
+        if ($line -eq "") { continue }
+        $pkg = ($line -split '[<>=!~]', 2)[0].Trim()
+        if ($pkg -eq "") { continue }
+        & $pip show $pkg 2>$null | Out-Null
+        if ($LASTEXITCODE -ne 0) { $missing = $true; break }
+    }
+    return -not $missing
+}
+
+function Skip-ComponentsAlreadyPresent([hashtable] $Want) {
+    if ($Want.adb -and (Test-AdbPresent)) {
+        Write-Info "ADB already installed; skipping."
+        $Want.adb = $false
+    }
+    if ($Want.nmap -and (Test-NmapPresent)) {
+        Write-Info "Nmap already installed; skipping."
+        $Want.nmap = $false
+    }
+    if ($Want.scrcpy -and (Test-ScrcpyPresent)) {
+        Write-Info "scrcpy already installed; skipping."
+        $Want.scrcpy = $false
+    }
+    if ($Want.metasploit -and (Test-MetasploitPresent)) {
+        Write-Info "Metasploit already installed (msfconsole, msfvenom); skipping."
+        $Want.metasploit = $false
+    }
+    if ($Want.pip -and (Test-PipReqsPresent)) {
+        Write-Info "Python dependencies already installed in .venv; skipping pip."
+        $Want.pip = $false
+    }
+}
+
 function Install-MetasploitMsi {
     param([string] $DownloadUrl = "https://windows.metasploit.com/metasploitframework-latest.msi")
 
@@ -149,8 +216,7 @@ else {
     $want.pip = $true
 }
 
-$any = $want.Values -contains $true
-if (-not $any) {
+if (-not ($want.Values -contains $true)) {
     Write-Host "Nothing selected. Exiting."
     exit 0
 }
@@ -176,6 +242,14 @@ if (-not $pythonExe) {
 }
 if (-not $pythonExe -and -not $usePyLauncher) {
     throw "Python 3.10+ is required. Install from https://www.python.org/ and re-run."
+}
+
+Skip-ComponentsAlreadyPresent $want
+
+$any = $want.Values -contains $true
+if (-not $any) {
+    Write-Host "Everything requested is already installed. Exiting."
+    exit 0
 }
 
 $chocoExe = $null

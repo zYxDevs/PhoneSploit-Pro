@@ -62,6 +62,52 @@ prompt_yes() {
 
 have_cmd() { command -v "$1" >/dev/null 2>&1; }
 
+have_adb() { have_cmd adb; }
+have_nmap() { have_cmd nmap; }
+have_scrcpy() { have_cmd scrcpy; }
+have_metasploit() { have_cmd msfconsole && have_cmd msfvenom; }
+
+have_pip_reqs() {
+  local venv="$SCRIPT_DIR/.venv"
+  local pip="$venv/bin/pip"
+  [[ -d "$venv" && -x "$pip" ]] || return 1
+  [[ -f "$SCRIPT_DIR/requirements.txt" ]] || return 0
+  local req line pkg
+  while IFS= read -r req || [[ -n "$req" ]]; do
+    req="${req%%#*}"
+    req="$(echo "$req" | tr -d '[:space:]')"
+    [[ -z "$req" ]] && continue
+    pkg="${req%%[<>=!~]*}"
+    if ! "$pip" show "$pkg" &>/dev/null; then
+      return 1
+    fi
+  done < "$SCRIPT_DIR/requirements.txt"
+  return 0
+}
+
+skip_components_already_present() {
+  if [[ "$want_adb" -eq 1 ]] && have_adb; then
+    warn "ADB already installed ($(command -v adb)); skipping."
+    want_adb=0
+  fi
+  if [[ "$want_nmap" -eq 1 ]] && have_nmap; then
+    warn "Nmap already installed ($(command -v nmap)); skipping."
+    want_nmap=0
+  fi
+  if [[ "$want_scrcpy" -eq 1 ]] && have_scrcpy; then
+    warn "scrcpy already installed ($(command -v scrcpy)); skipping."
+    want_scrcpy=0
+  fi
+  if [[ "$want_metasploit" -eq 1 ]] && have_metasploit; then
+    warn "Metasploit already installed (msfconsole, msfvenom); skipping."
+    want_metasploit=0
+  fi
+  if [[ "$want_pip" -eq 1 ]] && have_pip_reqs; then
+    warn "Python dependencies already installed in .venv; skipping pip."
+    want_pip=0
+  fi
+}
+
 detect_os() {
   if [[ -n "${TERMUX_VERSION:-}" ]] || [[ -d /data/data/com.termux/files/usr ]]; then
     echo "termux"
@@ -246,11 +292,6 @@ install_metasploit() {
   case "$OS_KIND" in
     macos)
       ensure_brew
-      # Upstream distributes Metasploit as a Homebrew Cask (not a core formula).
-      if brew list --cask metasploit &>/dev/null; then
-        warn "Metasploit already installed via Homebrew Cask."
-        return 0
-      fi
       brew install --cask metasploit
       ;;
     debian|fedora|arch|opensuse|alpine)
@@ -332,10 +373,16 @@ if [[ "$OS_KIND" = "unknown" ]]; then
   die "Could not detect a supported package manager. Install dependencies manually (README → Installing external tools)."
 fi
 
-ensure_python
-
 if [[ "$want_adb$want_metasploit$want_scrcpy$want_nmap$want_pip" = "00000" ]]; then
   say "Nothing selected. Exiting."
+  exit 0
+fi
+
+ensure_python
+skip_components_already_present
+
+if [[ "$want_adb$want_metasploit$want_scrcpy$want_nmap$want_pip" = "00000" ]]; then
+  say "Everything requested is already installed. Exiting."
   exit 0
 fi
 
